@@ -65,15 +65,23 @@
         "playlist": "806F6EADFE6F4CB5"
     },
     {
+        "title": "MySQL",
+        "playlist": "EC32BC9C878BA72085"
+    },
+    {
+        "title": "Python Programming",
+        "playlist": "ECEA1FEF17E1E5C0DA"
+    },
+    {
          "title": "Raspberry Pi WebIDE",
          "playlist": "1A011279DBD4EB7E"
     },
     {
-        "title": "Titanium",
-        "playlist": "9CC79690BA88A69D"
-    },
-    {
         "title": "Sublime Text 2",
         "playlist": "mJpVU-TdmVtTLooKvX3jcrOziPjlWrD4"
+    },
+    {
+        "title": "Titanium",
+        "playlist": "9CC79690BA88A69D"
     }
 ]
