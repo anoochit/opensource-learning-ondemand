@@ -18,40 +18,46 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.google.ads.AdSize;
-import com.google.ads.AdView;
-
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Bundle;
-import android.os.StrictMode;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
-import com.google.ads.*;
 
-import android.widget.SimpleAdapter;
+import com.google.ads.AdRequest;
+import com.google.ads.AdSize;
+import com.google.ads.AdView;
 
 public class MainActivity extends Activity {
 
 	private AdView adView;
+	int data_size = 0; 
+	public ArrayList<HashMap<String, String>> MyArrList = new ArrayList<HashMap<String, String>>();
+	public HashMap<String, String> map;
+	ListView listItem;
 
 	String url = "https://raw.github.com/anoochit/opensource-learning-ondemand/master/playlist.json";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		setContentView(R.layout.activity_main); 
+		setProgressBarIndeterminateVisibility(false);
 
 		// break policy
 		if (android.os.Build.VERSION.SDK_INT > 9) {
@@ -66,7 +72,7 @@ public class MainActivity extends Activity {
 		if (checkNetworkStatus()) {
 
 			// Create the adView
-			adView = new AdView(this, AdSize.SMART_BANNER, "a151174be34d211");
+			adView = new AdView(this, AdSize.BANNER, "a151174be34d211");
 			// Lookup your LinearLayout assuming it’s been given
 			// the attribute android:id="@+id/mainLayout"
 			LinearLayout layout = (LinearLayout) findViewById(R.id.mainLayout);
@@ -75,15 +81,23 @@ public class MainActivity extends Activity {
 			// Initiate a generic request to load it with an ad
 			adView.loadAd(new AdRequest());
 
+			new  LoadContentAsync().execute();
+
+		} else {
+			Toast.makeText(getBaseContext(), "No network connection!",Toast.LENGTH_SHORT).show();
+		}
+
+	}
+	
+	public class LoadContentAsync extends AsyncTask<String, Void, Void> {
+
+		@Override
+		protected Void doInBackground(String... params) {
 			// load json data
 			try {
 				JSONArray json_data = new JSONArray(getJSONUrl(url));
-
-				final ArrayList<HashMap<String, String>> MyArrList = new ArrayList<HashMap<String, String>>();
-				HashMap<String, String> map;
-
+				
 				for (int i = 0; i < json_data.length(); i++) {
-
 					// parse json
 					JSONObject c = json_data.getJSONObject(i);
 					Log.d("JSON", c.getString("title").toString());
@@ -94,44 +108,57 @@ public class MainActivity extends Activity {
 					map.put("title", c.getString("title"));
 					map.put("playlist", c.getString("playlist"));
 					MyArrList.add(map);
-
-					ListView listItem = (ListView) findViewById(R.id.listItem);					
-					SimpleAdapter adapter;		 
-					adapter = new SimpleAdapter(MainActivity.this, MyArrList, R.layout.activity_playlist_column,			 
-					new String[] {"title"}, new int[] {R.id.ColTitle});				 
-					listItem.setAdapter(adapter);
-					
-					listItem.setOnItemClickListener(new OnItemClickListener() {
-
-						@Override
-						public void onItemClick(AdapterView<?> arg0, View arg1,
-								int arg2, long arg3) {
-							// TODO Auto-generated method stub
-							Intent newActivity = new Intent(MainActivity.this,VideoActivity.class);
-			            	newActivity.putExtra("title", MyArrList.get(arg2).get("title"));
-			            	newActivity.putExtra("playlist", MyArrList.get(arg2).get("playlist"));
-			            	startActivity(newActivity);						
-						}
-					
-					});
-
 				}
+
+				data_size = json_data.length();
 
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				Toast.makeText(getBaseContext(), "cannot load data !",
-						Toast.LENGTH_SHORT).show();
-
+				
 			}
-
-		} else {
-			Toast.makeText(getBaseContext(), "No network connection!",
-					Toast.LENGTH_SHORT).show();
-
+			return null;
 		}
 
+		@Override
+		protected void onPostExecute(Void result) {
+			// TODO Auto-generated method stub
+			ShowResult(MyArrList);
+			setProgressBarIndeterminateVisibility(false);
+		}
+
+		@Override
+		protected void onPreExecute() {
+			// TODO Auto-generated method stub
+			super.onPreExecute();
+			setProgressBarIndeterminateVisibility(true);
+		}
+		
 	}
+	
+	public void ShowResult(ArrayList<HashMap<String, String>> myArrList) { 
+		if (data_size>0) {			
+			ListView listItem = (ListView) findViewById(R.id.listItem);					
+			SimpleAdapter adapter;		 
+			adapter = new SimpleAdapter(MainActivity.this, MyArrList, R.layout.activity_playlist_column,			 
+			new String[] {"title"}, new int[] {R.id.ColTitle});				 
+			listItem.setAdapter(adapter);				
+			listItem.setOnItemClickListener(new OnItemClickListener() {
+				@Override
+				public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+						long arg3) {
+					Intent newActivity = new Intent(MainActivity.this,VideoActivity.class);
+	            	newActivity.putExtra("title", MyArrList.get(arg2).get("title"));
+	            	newActivity.putExtra("playlist", MyArrList.get(arg2).get("playlist"));
+	            	startActivity(newActivity);				
+				}
+			});
+		} else {
+			Toast.makeText(getBaseContext(), "Cannot connect to server!",Toast.LENGTH_SHORT).show();
+		}
+	}
+	
+	
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
