@@ -18,7 +18,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -28,8 +27,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -38,11 +35,13 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockActivity;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
+import com.keyes.youtube.OpenYouTubePlayerActivity;
 
-public class VideoActivity extends Activity {
+public class VideoActivity extends SherlockActivity {
 
 	private AdView adView;
 	
@@ -88,6 +87,7 @@ public class VideoActivity extends Activity {
 			layout.addView(adView);
 			// Initiate a generic request to load it with an ad
 			adView.loadAd(new AdRequest());
+			//adView.loadAd(new AdRequest().addTestDevice("EEEC201218AC425593883C4F37DAA5C9"));	
 			
 			new  LoadContentAsync().execute();
 			
@@ -161,10 +161,16 @@ public class VideoActivity extends Activity {
 				@Override
 				public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 						long arg3) {
-					Intent fanPageIntent = new Intent(Intent.ACTION_VIEW);
-					fanPageIntent.setType("text/url");
-					fanPageIntent.setData(Uri.parse(MyArrList.get(arg2).get("link")));
-					startActivity(fanPageIntent);			
+//					Intent fanPageIntent = new Intent(Intent.ACTION_VIEW);
+//					fanPageIntent.setType("text/url");
+//					fanPageIntent.setData(Uri.parse(MyArrList.get(arg2).get("link")));
+//					startActivity(fanPageIntent);			
+					Log.d("Youtube",MyArrList.get(arg2).get("videoid"));
+					Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+MyArrList.get(arg2).get("videoid")), VideoActivity.this, OpenYouTubePlayerActivity.class);
+					lVideoIntent.putExtra("com.keyes.video.msg.init", "initializing");
+					lVideoIntent.putExtra("com.keyes.video.msg.detect", "detecting the bandwidth available to download video");
+					lVideoIntent.putExtra("com.keyes.video.msg.loband", "buffering low-bandwidth");
+					startActivity(lVideoIntent);
 				}
 			});
 		}
@@ -204,15 +210,7 @@ public class VideoActivity extends Activity {
 				.getActiveNetworkInfo();
 		return activeNetworkInfo != null;
 	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		return false;
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		//etMenuInflater().inflate(R.menu.activity_main, menu);
-		return true;
-	}
+ 
+	 
+ 
 }

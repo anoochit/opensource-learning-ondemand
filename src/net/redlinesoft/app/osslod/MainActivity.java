@@ -18,7 +18,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -27,7 +26,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -37,11 +35,15 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.widget.ShareActionProvider;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends SherlockActivity {
 
 	private AdView adView;
 	int data_size = 0; 
@@ -70,7 +72,6 @@ public class MainActivity extends Activity {
 
 		// get xml data form yql
 		if (checkNetworkStatus()) {
-
 			// Create the adView
 			adView = new AdView(this, AdSize.BANNER, "a151174be34d211");
 			// Lookup your LinearLayout assuming it’s been given
@@ -80,9 +81,8 @@ public class MainActivity extends Activity {
 			layout.addView(adView);
 			// Initiate a generic request to load it with an ad
 			adView.loadAd(new AdRequest());
-
+			//adView.loadAd(new AdRequest().addTestDevice("EEEC201218AC425593883C4F37DAA5C9"));	
 			new  LoadContentAsync().execute();
-
 		} else {
 			Toast.makeText(getBaseContext(), "No network connection!",Toast.LENGTH_SHORT).show();
 		}
@@ -150,23 +150,14 @@ public class MainActivity extends Activity {
 					Intent newActivity = new Intent(MainActivity.this,VideoActivity.class);
 	            	newActivity.putExtra("title", MyArrList.get(arg2).get("title"));
 	            	newActivity.putExtra("playlist", MyArrList.get(arg2).get("playlist"));
-	            	startActivity(newActivity);				
+	            	startActivity(newActivity);
 				}
 			});
 		} else {
 			Toast.makeText(getBaseContext(), "Cannot connect to server!",Toast.LENGTH_SHORT).show();
 		}
-	}
+	} 
 	
-	
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		// getMenuInflater().inflate(R.menu.activity_main, menu);
-		return true;
-	}
-
 	public String getJSONUrl(String url) {
 		StringBuilder str = new StringBuilder();
 		HttpClient client = new DefaultHttpClient();
@@ -202,4 +193,22 @@ public class MainActivity extends Activity {
 		return activeNetworkInfo != null;
 	}
 
+	public boolean onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu) {
+		// TODO Auto-generated method stub
+		MenuInflater inflater = getSupportMenuInflater();
+		inflater.inflate(R.menu.activity_main, menu);		
+		MenuItem actionItem = menu.findItem(R.id.menu_item_share_action_provider_action_bar);
+        ShareActionProvider actionProvider = (ShareActionProvider) actionItem.getActionProvider();
+        actionProvider.setShareIntent(createShareIntent());		 
+        return true;
+	} 
+
+	private Intent createShareIntent() {
+		// TODO Auto-generated method stub
+		Intent shareIntent = new Intent(android.content.Intent.ACTION_SEND);
+		shareIntent.setType("text/*");
+		shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.text_share_subject));
+		shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, getString(R.string.text_share_body)	+ getApplicationContext().getPackageName());
+		return shareIntent;
+	}
 }
